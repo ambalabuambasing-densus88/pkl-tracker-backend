@@ -20,11 +20,11 @@ model User {
   avatar            String?
   
   // Data Magang (Sesuai dengan payload Flutter kamu)
-  guru_uid          String?   // Ditambahkan agar sinkron dengan payload
-  pkl_place_name    String?   // Sesuai payload
-  pkl_place_address String?   // Sesuai payload
-  latitude          Float?    @map("pkl_lat") // Mapping ke nama di payload
-  longitude         Float?    @map("pkl_lng") // Mapping ke nama di payload
+  guru_uid          String?   
+  pkl_place_name    String?   
+  pkl_place_address String?   
+  latitude          Float?    @map("pkl_lat") 
+  longitude         Float?    @map("pkl_lng") 
   
   presensi          Presensi[]
   logbooks          Logbook[]
@@ -37,7 +37,9 @@ model Presensi {
   status    String   
   isValid   Boolean  @default(true)
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Logbook {
@@ -46,5 +48,7 @@ model Logbook {
   activity  String   @db.Text
   status    String   @default("PENDING")
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
