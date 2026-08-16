@@ -80,7 +80,7 @@ app.post('/api/logbook', async (req, res) => {
     
     const newLogbook = await prisma.logbook.create({
       data: {
-        user_uid: req.body.user_uid,
+        userId: req.body.user_uid,
         activity: req.body.activity,
         date: req.body.date ? new Date(req.body.date) : new Date(),
         status: req.body.status || "PENDING",
