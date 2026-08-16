@@ -73,15 +73,18 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Endpoint Logbook (BARU)
+// Endpoint Logbook
 app.post('/api/logbook', async (req, res) => {
   try {
     console.log("Data logbook diterima:", req.body);
     
+    const rawUserId = req.body.userId || req.body.user_uid;
+    const activity = req.body.activity || req.body.description || req.body.kegiatan;
+
     const newLogbook = await prisma.logbook.create({
       data: {
-        userId: req.body.user_uid,
-        activity: req.body.activity,
+        userId: rawUserId ? Number(rawUserId) : 1, // Diubah menjadi tipe angka (number)
+        activity: activity || "Tanpa Keterangan",
         date: req.body.date ? new Date(req.body.date) : new Date(),
         status: req.body.status || "PENDING",
       },
