@@ -8,7 +8,7 @@
     "start": "npx prisma generate && npx tsx src/index.ts",
     "dev": "tsx src/index.ts",
     "migrate": "prisma migrate dev --name skema_akhir_pkl",
-    "seed": "node prisma/seed.js",
+    "seed": "tsx prisma/seed.ts",
     "build": "echo 'Skipping build'"
   },
   "engines": {
@@ -29,7 +29,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/node": "^26.1.0",
+    "@types/node": "^26.2.0",
     "nodemon": "^3.1.14",
     "prisma": "5.18.0",
     "tsx": "^4.23.0",
