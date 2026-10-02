@@ -1,20 +1,21 @@
-import express from 'express';
-import cors from 'cors';
-import { PrismaClient } from '@prisma/client';
+import express from "express";
+import cors from "cors";
+import { PrismaClient } from "@prisma/client";
+import { upload, uploadToCloudinary } from "./cloudinary";
 
 const app = express();
 const prisma = new PrismaClient();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 5000; // Disesuaikan dengan port 5000 untuk Cloudflare Tunnel
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
 // Endpoint Registrasi
-app.post('/api/users', async (req, res) => {
+app.post("/api/users", async (req, res) => {
   try {
     console.log("Data diterima dari Flutter (Register):", req.body);
-    
+
     const newUser = await prisma.user.create({
       data: {
         name: req.body.name,
@@ -37,7 +38,7 @@ app.post('/api/users', async (req, res) => {
 });
 
 // Endpoint Login
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     console.log("Data login diterima:", { email });
@@ -47,11 +48,15 @@ app.post('/api/login', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "Email tidak ditemukan!" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Email tidak ditemukan!" });
     }
 
     if (user.password !== password) {
-      return res.status(401).json({ success: false, message: "Password salah!" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Password salah!" });
     }
 
     res.status(200).json({
@@ -66,31 +71,45 @@ app.post('/api/login', async (req, res) => {
         pkl_place_address: user.pkl_place_address,
       },
     });
-
   } catch (error: any) {
     console.error("DEBUG ERROR LOGIN:", JSON.stringify(error, null, 2));
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Endpoint Logbook
-app.post('/api/logbook', async (req, res) => {
+// Endpoint Logbook (Dengan Support Upload Foto Cloudinary)
+app.post("/api/logbook", upload.single("photo"), async (req, res) => {
   try {
-    console.log("Data logbook diterima:", req.body);
-    
+    console.log("Data logbook diterima (body):", req.body);
+    console.log(
+      "File diterima:",
+      req.file ? req.file.originalname : "Tidak ada foto",
+    );
+
     const rawUserId = req.body.userId || req.body.user_uid;
-    const activity = req.body.activity || req.body.description || req.body.kegiatan;
+    const activity =
+      req.body.activity || req.body.description || req.body.kegiatan;
+
+    let photoUrl: string | null = null;
+
+    // Upload ke Cloudinary jika ada file foto yang dikirim
+    if (req.file) {
+      photoUrl = await uploadToCloudinary(req.file.buffer);
+    }
 
     const newLogbook = await prisma.logbook.create({
       data: {
-        userId: rawUserId ? Number(rawUserId) : 1, // Diubah menjadi tipe angka (number)
+        userId: rawUserId ? Number(rawUserId) : 1,
         activity: activity || "Tanpa Keterangan",
+        photo: photoUrl, // Menyimpan URL Cloudinary
         date: req.body.date ? new Date(req.body.date) : new Date(),
         status: req.body.status || "PENDING",
       },
     });
 
-    res.status(201).json({ message: "Logbook berhasil disimpan!", data: newLogbook });
+    res
+      .status(201)
+      .json({ message: "Logbook berhasil disimpan!", data: newLogbook });
   } catch (error: any) {
     console.error("DEBUG ERROR LOGBOOK:", JSON.stringify(error, null, 2));
     res.status(500).json({ error: error.message });

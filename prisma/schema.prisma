@@ -46,6 +46,7 @@ model Logbook {
   id        Int      @id @default(autoincrement())
   date      DateTime @default(now())
   activity  String   @db.Text
+  photo     String?  // Simpan URL gambar (String) di sini
   status    String   @default("PENDING")
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
